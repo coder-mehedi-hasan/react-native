@@ -13,20 +13,20 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarIcon(props) {
-          return <></>
-        },
+        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
       }}>
       <Tabs.Screen
         name="one"
         options={{
           title: 'First',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="two"
         options={{
           title: 'Second',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperclip" color={color} />,
         }}
       />
     </Tabs>

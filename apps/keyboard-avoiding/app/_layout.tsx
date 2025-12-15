@@ -1,23 +1,25 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import TabNavigator from './navigation/TabNavigator';
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+const Stack = createNativeStackNavigator();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
+    <NavigationContainer theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+        }}>
+        <Stack.Screen name="root" component={TabNavigator} />
+      </Stack.Navigator>
       <StatusBar style="auto" />
-    </ThemeProvider>
+    </NavigationContainer>
   );
 }
