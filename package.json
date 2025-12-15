@@ -5,6 +5,9 @@
     "apps/*",
     "packages/*"
   ],
+  "scripts": {
+    "addpkg": "node scripts/add-package.js"
+  },
   "devDependencies": {
     "typescript": "^5.2.2"
   }
