@@ -80,7 +80,7 @@ We have a script to **install dependencies in apps or packages** easily.
 ### Usage:
 
 ```bash
-npm run addpkg <package-name> [-a | -p] [workspace-name] [--dev]
+npm run addpkg <workspace-name> [-a | -p] [package-name] [--dev]
 ```
 
 #### Options:
