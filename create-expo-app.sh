@@ -1,106 +1,144 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
-usage() {
-  cat <<USAGE
-Usage: $0 [--router|-r] [--typescript|-t] <app-name>
+set -e
 
-Options:
-  -r, --router       Scaffold app with Expo Router installed and an `app/` layout
-  -t, --typescript   Use the TypeScript template
-  -h, --help         Show this help
-USAGE
-  exit 1
-}
-
-if [ $# -eq 0 ]; then
-  usage
-fi
-
-ROUTER=0
-TS=0
 APP_NAME=""
+ROUTER="expo-router"
 
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    -r|--router)
-      ROUTER=1; shift ;;
-    -t|--typescript)
-      TS=1; shift ;;
-    -h|--help)
-      usage ;;
-    --)
-      shift; break ;;
-    -* )
-      echo "Unknown option: $1" >&2; usage ;;
-    * )
-      if [ -z "$APP_NAME" ]; then
-        APP_NAME="$1"
-        shift
-      else
-        usage
-      fi
+# -------------------------
+# Parse Arguments
+# -------------------------
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+    --name)
+      APP_NAME="$2"
+      shift
+      ;;
+    --router)
+      ROUTER="$2"
+      shift
+      ;;
+    *)
+      echo "❌ Unknown parameter passed: $1"
+      exit 1
       ;;
   esac
+  shift
 done
 
-if [ -z "$APP_NAME" ]; then
-  echo "Error: <app-name> is required." >&2
-  usage
-fi
-
-TEMPLATE="expo-template-blank"
-if [ "$TS" -eq 1 ]; then
-  TEMPLATE="expo-template-blank-typescript"
-fi
-
-TARGET_DIR="apps/$APP_NAME"
-
-if [ -d "$TARGET_DIR" ]; then
-  echo "Error: target directory '$TARGET_DIR' already exists." >&2
+if [[ -z "$APP_NAME" ]]; then
+  echo "❌ App name is required"
+  echo "Usage:"
+  echo "  ./create-expo-app.sh --name myApp --router expo-router|react-navigation"
   exit 1
 fi
 
-echo "Creating Expo app '$APP_NAME' in $TARGET_DIR using template $TEMPLATE"
-npx create-expo-app@latest "$TARGET_DIR" --template "$TEMPLATE"
+echo "🚀 Creating Expo app: $APP_NAME"
+echo "📦 Router: $ROUTER"
 
-cd "$TARGET_DIR"
+# -------------------------
+# Create Expo App
+# -------------------------
+mkdir -p apps
+npx create-expo-app "apps/$APP_NAME" --template blank-typescript
+cd "apps/$APP_NAME"
 
-if [ "$ROUTER" -eq 1 ]; then
-  echo "Installing Expo Router and native dependencies..."
-  npx expo install expo-router react-native-gesture-handler react-native-safe-area-context react-native-screens
+# -------------------------
+# Install Expo Dev Client
+# -------------------------
+echo "📲 Installing Expo Dev Client..."
+npx expo install expo-dev-client
 
-  echo "Scaffolding minimal app/ layout and index files"
+# -------------------------
+# Router Setup
+# -------------------------
+if [[ "$ROUTER" == "expo-router" ]]; then
+  echo "🧭 Setting up Expo Router..."
+
+  npx expo install expo-router react-native-safe-area-context react-native-screens
+
+  # Update app.json
+  jq '.expo.plugins += ["expo-router"]' app.json > app.tmp.json && mv app.tmp.json app.json
+
   mkdir -p app
-  if [ "$TS" -eq 1 ]; then
-    LAYOUT_EXT="tsx"
-    INDEX_EXT="tsx"
-  else
-    LAYOUT_EXT="js"
-    INDEX_EXT="js"
-  fi
-
-  cat > "app/_layout.$LAYOUT_EXT" <<'LAYOUT_EOF'
-import React from 'react'
-import { Stack } from 'expo-router'
+  cat <<EOF > app/_layout.tsx
+import { Stack } from 'expo-router';
 
 export default function Layout() {
-  return <Stack />
+  return <Stack />;
 }
-LAYOUT_EOF
+EOF
 
-  cat > "app/index.$INDEX_EXT" <<'INDEX_EOF'
-import React from 'react'
-import { Text } from 'react-native'
+  cat <<EOF > app/index.tsx
+import { Text, View } from 'react-native';
 
 export default function Home() {
-  return <Text style={{ padding: 16 }}>Hello from Expo Router app</Text>
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <Text>Expo Router Ready 🚀</Text>
+    </View>
+  );
 }
-INDEX_EOF
+EOF
 
-  echo "Expo Router scaffolded. Add more routes by creating files under app/"
+elif [[ "$ROUTER" == "react-navigation" ]]; then
+  echo "🧭 Setting up React Navigation..."
+
+  npx expo install \
+    @react-navigation/native \
+    @react-navigation/native-stack \
+    react-native-safe-area-context \
+    react-native-screens
+
+  cat <<EOF > App.tsx
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { View, Text } from 'react-native';
+
+const Stack = createNativeStackNavigator();
+
+function HomeScreen() {
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <Text>React Navigation Ready 🚀</Text>
+    </View>
+  );
+}
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Home" component={HomeScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+EOF
+
+else
+  echo "❌ Invalid router option: $ROUTER"
+  echo "Valid options: expo-router | react-navigation"
+  exit 1
 fi
 
-echo "Finished. To run the app:" 
-echo "  cd $TARGET_DIR"
-echo "  npx expo start"
+# -------------------------
+# Final Message
+# -------------------------
+echo ""
+echo "🧹 Cleaning up node_modules..."
+rm -rf node_modules
+
+echo "📦 Returning to root and installing dependencies..."
+cd ../../
+npm install
+
+echo ""
+echo "✅ Expo app setup complete!"
+echo ""
+echo "Next steps:"
+echo "  cd apps/$APP_NAME"
+echo "  npx expo prebuild"
+echo "  npx expo run:android | run:ios"
+echo ""
+echo "Happy coding 🚀"

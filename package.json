@@ -7,9 +7,9 @@
   ],
   "scripts": {
     "addpkg": "node scripts/add-package.js",
-    "create:app": "bash ./create-expo-app.sh",
-    "create:app:router": "bash ./create-expo-app.sh --router",
-    "create:app:ts": "bash ./create-expo-app.sh --typescript"
+     "create:expo": "bash ./create-expo-app.sh",
+    "create:router": "bash ./create-expo-app.sh --router expo-router",
+    "create:nav": "bash ./create-expo-app.sh --router react-navigation"
   },
   "devDependencies": {
     "typescript": "^5.2.2"
