@@ -1,25 +1,28 @@
-import { Href, Link } from 'expo-router';
-import { openBrowserAsync, WebBrowserPresentationStyle } from 'expo-web-browser';
-import { type ComponentProps } from 'react';
+import React from 'react';
+import { Platform, TouchableOpacity } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 
-type Props = Omit<ComponentProps<typeof Link>, 'href'> & { href: Href & string };
+type Props = {
+  href: string;
+  children: React.ReactNode;
+  style?: any;
+};
 
-export function ExternalLink({ href, ...rest }: Props) {
+export function ExternalLink({ href, children, style }: Props) {
+  const handlePress = async () => {
+    if (Platform.OS === 'web') {
+      // Open in a new tab on web
+      window.open(href, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    // Use expo web browser on native
+    await WebBrowser.openBrowserAsync(href);
+  };
+
   return (
-    <Link
-      target="_blank"
-      {...rest}
-      href={href}
-      onPress={async (event) => {
-        if (process.env.EXPO_OS !== 'web') {
-          // Prevent the default behavior of linking to the default browser on native.
-          event.preventDefault();
-          // Open the link in an in-app browser.
-          await openBrowserAsync(href, {
-            presentationStyle: WebBrowserPresentationStyle.AUTOMATIC,
-          });
-        }
-      }}
-    />
+    <TouchableOpacity style={style} onPress={handlePress}>
+      {children}
+    </TouchableOpacity>
   );
 }

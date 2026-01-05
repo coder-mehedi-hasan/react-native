@@ -33,10 +33,10 @@ export default function Index() {
 }
 `;
 
-const layoutContent = `import { Stack } from "expo-router";
+const layoutContent = `import { View } from "react-native";
 
 export default function RootLayout() {
-  return <Stack />;
+  return <View style={{ flex: 1 }} />;
 }
 `;
 
