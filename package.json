@@ -6,7 +6,10 @@
     "packages/*"
   ],
   "scripts": {
-    "addpkg": "node scripts/add-package.js"
+    "addpkg": "node scripts/add-package.js",
+    "create:app": "bash ./create-expo-app.sh",
+    "create:app:router": "bash ./create-expo-app.sh --router",
+    "create:app:ts": "bash ./create-expo-app.sh --typescript"
   },
   "devDependencies": {
     "typescript": "^5.2.2"
